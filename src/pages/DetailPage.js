@@ -19,11 +19,40 @@ function DetailPage() {
   }, [id]);
 
   const handleReservation = () => {
+    const today = new Date().toISOString().split('T')[0];
+
+    // Validace: Nelze rezervovat v minulosti
+    if (fromDate < today || toDate < today) {
+      alert('Nelze vytvořit rezervaci v minulosti.');
+      return;
+    }
+
+    // Validace: Datum od nemůže být po datu do
+    if (fromDate > toDate) {
+      alert('Datum "Od" nemůže být později než "Do".');
+      return;
+    }
+
+    // Validace: Překrývající se rezervace
+    const overlapping = car.reservations.some((res) => {
+      return (
+        (fromDate <= res.toDate && toDate >= res.fromDate)
+      );
+    });
+
+    if (overlapping) {
+      alert('Termín je již rezervován.');
+      return;
+    }
+
+    // Pokud validace proběhne, provede se rezervace
     const reservation = { fromDate, toDate };
     addReservation(id, reservation)
       .then((response) => {
         alert('Rezervace úspěšná');
         setCar(response.car);  // Aktualizace auta s rezervací
+        setFromDate('');
+        setToDate('');
       })
       .catch(() => alert('Chyba při rezervaci'));
   };
@@ -62,3 +91,4 @@ function DetailPage() {
 }
 
 export default DetailPage;
+
